@@ -186,6 +186,62 @@
       .sort((a, b) => b.matchScore - a.matchScore || b.coordinateScore - a.coordinateScore);
   }
 
+  function countRecommendations(matches, key) {
+    const counts = new Map();
+    matches.slice(0, 12).forEach((lab, index) => {
+      const values = String(lab[key] || "")
+        .split("／")
+        .map(value => value.trim())
+        .filter(Boolean);
+      const weight = Math.max(1, 12 - index) * lab.matchScore;
+
+      values.forEach(value => {
+        counts.set(value, (counts.get(value) || 0) + weight);
+      });
+    });
+
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja"))
+      .slice(0, 3)
+      .map(([name]) => name);
+  }
+
+  function getAcademicRecommendations(matches) {
+    return {
+      clusters: countRecommendations(matches, "cluster"),
+      programs: countRecommendations(matches, "program")
+    };
+  }
+
+  function renderAcademicRecommendations(recommendations) {
+    const clusters = recommendations.clusters.length > 0 ? recommendations.clusters : ["判定対象なし"];
+    const programs = recommendations.programs.length > 0 ? recommendations.programs : ["判定対象なし"];
+
+    return `
+      <section class="recommendation-panel" aria-label="合っていそうな類とプログラム">
+        <div>
+          <p class="recommendation-kicker">ACADEMIC FIT</p>
+          <h2>合っていそうな類・プログラム</h2>
+          <p>上位候補の研究室から、あなたの興味に近い所属を集計しました。</p>
+        </div>
+        <div class="recommendation-columns">
+          <div>
+            <h3>類</h3>
+            <div class="recommendation-tags">
+              ${clusters.map(cluster => `<span>${escapeHtml(cluster)}</span>`).join("")}
+            </div>
+          </div>
+          <div>
+            <h3>プログラム</h3>
+            <div class="recommendation-tags">
+              ${programs.map(program => `<span>${escapeHtml(program)}</span>`).join("")}
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   function getType(position) {
     const center = Math.abs(position.x) < 15 && Math.abs(position.y) < 15;
     if (center) {
@@ -572,6 +628,7 @@
     const { position, matches, type, saveResult } = state.result;
     const responseCount = state.comparisonResponses.length;
     const topThree = matches.slice(0, 3);
+    const academicRecommendations = getAcademicRecommendations(matches);
 
     app.innerHTML = `
       <section class="result-header">
@@ -613,6 +670,7 @@
               ? `複数端末で共有された匿名回答${responseCount}件を比較に使用しています。`
               : "現在はこの端末に保存された回答を比較に使用しています。config.jsへSupabaseの接続情報を設定すると、複数端末で共有できます。"}
           </p>
+          ${renderAcademicRecommendations(academicRecommendations)}
           <div class="data-panel">
             <h3>開発者向け：この端末の回答データ</h3>
             <p>${saveResult.saved
@@ -637,7 +695,10 @@
               <p class="summary">${escapeHtml(lab.summary)}</p>
               ${renderMatchExplanation(lab, position)}
               <div class="tag-list">${lab.tags.map(tag => `<span class="mini-tag">${escapeHtml(tag)}</span>`).join("")}</div>
-              <a class="card-link" href="${escapeHtml(lab.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lab.urlLabel || "研究室情報を見る")} ↗</a>
+              <div class="lab-url">
+                <span>Webページ</span>
+                <a href="${escapeHtml(lab.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lab.url)}</a>
+              </div>
             </article>
           `).join("")}
         </aside>
