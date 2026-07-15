@@ -96,6 +96,7 @@
   };
 
   const app = document.getElementById("app");
+  let questionAdvanceTimer = null;
 
   function escapeHtml(value) {
     return String(value)
@@ -334,7 +335,18 @@
     const index = state.questionIndex;
     const question = QUESTIONS[index];
     const selected = state.answers[index];
-    const progress = Math.round((index / QUESTIONS.length) * 100);
+    const progress = Math.round(((index + 1) / QUESTIONS.length) * 100);
+
+    function advanceQuestion() {
+      if (state.answers[index] == null) return;
+      if (index < QUESTIONS.length - 1) {
+        state.questionIndex += 1;
+        render();
+      } else {
+        state.page = "tags";
+        render();
+      }
+    }
 
     app.innerHTML = `
       <div class="progress-wrap">
@@ -371,10 +383,14 @@
       input.addEventListener("change", event => {
         state.answers[index] = Number(event.target.value);
         document.getElementById("nextButton").disabled = false;
+        document.querySelector(".question-card").classList.add("is-exiting");
+        clearTimeout(questionAdvanceTimer);
+        questionAdvanceTimer = setTimeout(advanceQuestion, 240);
       });
     });
 
     document.getElementById("backButton").addEventListener("click", () => {
+      clearTimeout(questionAdvanceTimer);
       if (state.questionIndex > 0) {
         state.questionIndex -= 1;
         render();
@@ -382,14 +398,8 @@
     });
 
     document.getElementById("nextButton").addEventListener("click", () => {
-      if (state.answers[index] == null) return;
-      if (index < QUESTIONS.length - 1) {
-        state.questionIndex += 1;
-        render();
-      } else {
-        state.page = "tags";
-        render();
-      }
+      clearTimeout(questionAdvanceTimer);
+      advanceQuestion();
     });
   }
 
@@ -436,6 +446,7 @@
     });
 
     document.getElementById("backButton").addEventListener("click", () => {
+      clearTimeout(questionAdvanceTimer);
       state.page = "questions";
       state.questionIndex = QUESTIONS.length - 1;
       render();
@@ -689,6 +700,9 @@
                 <span class="rank-number">MATCH ${index + 1}</span>
                 <span class="match-score">${lab.matchScore}%</span>
               </div>
+              <div class="match-meter" aria-label="適合度 ${lab.matchScore}%">
+                <span style="width:${lab.matchScore}%"></span>
+              </div>
               <h3>${escapeHtml(lab.name)}</h3>
               <p class="teacher">担当教員：${escapeHtml(lab.teacher)}</p>
               <p class="program">${escapeHtml(lab.cluster)}｜${escapeHtml(lab.program)}</p>
@@ -697,7 +711,7 @@
               <div class="tag-list">${lab.tags.map(tag => `<span class="mini-tag">${escapeHtml(tag)}</span>`).join("")}</div>
               <div class="lab-url">
                 <span>Webページ</span>
-                <a href="${escapeHtml(lab.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lab.url)}</a>
+                <a class="lab-link-button" href="${escapeHtml(lab.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lab.urlLabel || "研究室サイトを見る")}</a>
               </div>
             </article>
           `).join("")}
@@ -719,6 +733,7 @@
     state.answers = Array(QUESTIONS.length).fill(null);
     state.selectedTags = [];
     state.result = null;
+    clearTimeout(questionAdvanceTimer);
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
