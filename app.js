@@ -363,11 +363,14 @@
           <span>${escapeHtml(question.left)}</span>
           <span>${escapeHtml(question.right)}</span>
         </div>
-        <div class="scale-options" role="radiogroup" aria-label="5段階で回答">
+        <div class="scale-options orb-scale" role="radiogroup" aria-label="5段階で回答">
           ${[1,2,3,4,5].map(value => `
             <div class="scale-option">
               <input type="radio" name="scale" id="scale-${value}" value="${value}" ${selected === value ? "checked" : ""}>
-              <label for="scale-${value}">${value}</label>
+              <label class="scale-orb-label scale-orb-${value}" for="scale-${value}">
+                <span class="choice-orb" aria-hidden="true"></span>
+                <span class="sr-only">${value}</span>
+              </label>
             </div>
           `).join("")}
         </div>

@@ -37,6 +37,17 @@ button:focus-visible, input:focus-visible, a:focus-visible {
   outline-offset: 3px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -287,26 +298,51 @@ h2 {
 .scale-options {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  gap: 12px;
+  align-items: center;
 }
 
 .scale-option input { position: absolute; opacity: 0; }
 .scale-option label {
-  min-height: 66px;
+  --orb-size: 52px;
+  --orb-color: var(--accent);
+  min-height: 88px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: var(--radius);
-  background: var(--surface);
-  font-size: 1.1rem;
-  font-weight: 800;
-  transition: border-color .15s ease, transform .15s ease, background-color .15s ease, color .15s ease;
+  background: transparent;
+  transition: border-color .15s ease, transform .15s ease, background-color .15s ease;
 }
-.scale-option label:hover { border-color: var(--accent); transform: translateY(-2px); }
+.scale-option .scale-orb-1 { --orb-size: 76px; --orb-color: var(--accent-cyan); }
+.scale-option .scale-orb-2 { --orb-size: 62px; --orb-color: #238fc1; }
+.scale-option .scale-orb-3 { --orb-size: 44px; --orb-color: #9eb4c8; }
+.scale-option .scale-orb-4 { --orb-size: 62px; --orb-color: var(--accent); }
+.scale-option .scale-orb-5 { --orb-size: 76px; --orb-color: var(--accent-dark); }
+.choice-orb {
+  width: var(--orb-size);
+  height: var(--orb-size);
+  border: 3px solid var(--orb-color);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(16, 48, 82, .08);
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.scale-option label:hover {
+  background: rgba(228, 240, 251, .54);
+  transform: translateY(-2px);
+}
+.scale-option label:hover .choice-orb {
+  box-shadow: 0 12px 24px rgba(0, 91, 172, .16);
+}
 .scale-option input:checked + label {
-  border-color: var(--accent);
-  background: linear-gradient(135deg, var(--accent), var(--accent-cyan));
-  color: white;
+  border-color: rgba(0, 91, 172, .18);
+  background: var(--accent-soft);
+}
+.scale-option input:checked + label .choice-orb {
+  background: radial-gradient(circle at 50% 50%, #ffffff 0 38%, var(--orb-color) 40% 100%);
+  box-shadow: 0 0 0 5px rgba(0, 91, 172, .12), 0 14px 26px rgba(0, 91, 172, .18);
+  transform: scale(1.04);
 }
 
 .scale-hint {
@@ -644,7 +680,12 @@ h2 {
   .question-card { padding: 22px 16px; }
   .scale-labels { font-size: .83rem; }
   .scale-options { gap: 6px; }
-  .scale-option label { min-height: 56px; }
+  .scale-option label { min-height: 72px; }
+  .scale-option .scale-orb-1 { --orb-size: 64px; }
+  .scale-option .scale-orb-2 { --orb-size: 54px; }
+  .scale-option .scale-orb-3 { --orb-size: 40px; }
+  .scale-option .scale-orb-4 { --orb-size: 54px; }
+  .scale-option .scale-orb-5 { --orb-size: 64px; }
   .interest-chart { min-width: 430px; }
   .result-card { padding: 16px; }
   .lab-link-button { width: 100%; }
